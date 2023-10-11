@@ -1,25 +1,60 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { NavigationProvider } from './Context/Navigation';
+import LandingPage from './Pages/LandingPage';
+import DashboardPage from './Pages/DashboardPage';
+import Route from './Components/Route';
+import Link from './Components/Link';
+import AccountPage from './Pages/AccountPage';
+import BookingPage from './Pages/BookingPage';
 
-function App() {
+const App = () => {
+  const initialIsLoggedIn = window.location.pathname === '/dashboard';
+  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      window.history.pushState({}, '', '/dashboard');
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const currentPath = window.location.pathname;
+
+      if (currentPath === '/') {
+        setIsLoggedIn(false);
+        window.history.pushState({}, '', '/');
+      } else if (currentPath === '/dashboard') {
+        setIsLoggedIn(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <NavigationProvider>
+      <div>
+        {isLoggedIn ? (
+          <DashboardPage />
+        ) : (
+          <LandingPage setIsLoggedIn={setIsLoggedIn} />
+        )}
+        <div>
+          <Route path="/account">
+            <AccountPage />
+          </Route>
+          <Route path="/booking">
+            <BookingPage />
+          </Route>
+        </div>
+      </div>
+    </NavigationProvider>
   );
-}
+};
 
 export default App;
